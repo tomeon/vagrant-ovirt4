@@ -1,10 +1,12 @@
 require 'log4r'
+require 'vagrant-ovirt4/util/connection'
 require 'vagrant/util/retryable'
 
 module VagrantPlugins
   module OVirtProvider
     module Action
       class CreateVM
+        include VagrantPlugins::OVirtProvider::Util::Connection
         include Vagrant::Util::Retryable
 
         def initialize(app, env)
@@ -192,7 +194,7 @@ module VagrantPlugins
           destroy_env[:config_validate] = false
           destroy_env[:force_confirm_destroy] = true
           env[:action_runner].run(Action.action_destroy, destroy_env)
-          env[:connection].close()
+          safe_close_connection(env[:connection]) { |e| env[:ui].warn("Encountered exception of class #{e.class}: #{e.message}") }
         end
       end
     end
